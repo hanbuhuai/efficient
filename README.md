@@ -62,10 +62,14 @@
 
 >2.将大纲文件转化成excel 文件
 ```bash
-cd [efficient_path]
+cd <efficient_path>
 python parse.py -outline ./产品需求.txt -to xls --save 产品需求.xls
 ```
 >输出文件 产品需求.xls
 <img src="./asserts/otline_xls_opt.png">
 
-
+>3.将大纲转化为xmind
+```bash
+cd <efficient_path>
+python parse.py -outline ./产品需求.txt -to xmind --save 产品需求.xmind
+```
