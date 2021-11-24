@@ -19,6 +19,7 @@ class ExcelParser():
         column.append('content')
         return df[column]
     def __calcu_row_span(self,pk,df):
+        
         sub_df = self.sub_childs(pk,df)
         if len(sub_df)==0:
             return 1
@@ -44,6 +45,8 @@ class ExcelParser():
             x_path,
             path.join(tar_x_path,str(tar_row.pk))
         ))
+        
+        
         df = df.loc[df.hit==True,:].drop(columns=['hit'])
         return df
     
@@ -58,7 +61,6 @@ class ExcelParser():
         df =df.copy()
         columns = df.groupby(['indent'],as_index=False)
         col_start = 0
-        # df['col_start'] = pd.NaT
         right =pd.DataFrame(columns=df.columns)
         for col_k ,col_df in columns:
             col_df = col_df.copy()
@@ -86,12 +88,13 @@ class ExcelParser():
         #计算row start
         df['row_start']=pd.NaT
         for k,row in df.iterrows():
-            if row.indent==0:
+            
+            #找爸爸
+            parent_id = path.split(row.x_path)[-1]
+            if len(parent_id) ==0:
                 row.row_start = row.sibling_row_baise
                 df.iloc[k] = row
                 continue
-            #找爸爸
-            parent_id = row.x_path.split("/")[-1]
             parent_df = df.loc[df.pk==int(parent_id),:]
             parent_row= parent_df.iloc[0]
             row.row_start = parent_row.row_start + row.sibling_row_baise
@@ -105,16 +108,26 @@ class ExcelParser():
         col_span = int(row.col_span) 
         contents = str(row.content).split("|")
         for b, text in enumerate(contents):
-            if row_span==1:
-                self.worksheet.write(y,x+b, label = text)
-            else:
-                self.worksheet.write_merge(y, y+row_span-1, x+b, x+b,text)
+            try:
+                
+                if row_span==1:
+                    self.worksheet.write(y,x+b, label = text)
+                else:
+                    self.worksheet.write_merge(y, y+row_span-1, x+b, x+b,text)
+            except Exception as err:
+                print(self.__df.iloc[1])
+                exit()
+            
     def save(self,fname,row_baise=0,col_baise=0):
         df = self.__df.copy()
+        
         for k,row in df.iterrows():
             self.draw_row(k,row,row_baise=row_baise,col_baise=col_baise)
         self.workbook.save(fname)
         return fname
+    def dev(self):
+        resp = self.__calcu_row_span(2,self.__df)
+        print(resp)
           
 if __name__ == "__main__":
     m  = ExcelParser.read_txt('test.txt')

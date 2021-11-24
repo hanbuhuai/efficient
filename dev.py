@@ -1,2 +1,2 @@
 # -*- coding: UTF-8 -*-
-from outline import xmind_parser
+from outline import excel_parser

@@ -47,21 +47,25 @@ class Document():
                 row.x_path = "/"
                 df.iloc[k] = row
                 continue
+            last_row = df.iloc[k-1]
+            # assert bs<2,ValueError(f"row {k}：{row.content} indent error")
             if bs>=1:
                 last_row = df.iloc[k-1]
                 row.x_path = path.join(str(last_row.x_path),str(last_row.pk))
                 df.iloc[k] = row
                 continue
-            if bs==0:
+            else:
                 last_row = df.iloc[k-1]
-                row.x_path = last_row.x_path
+                last_x_path = last_row.x_path
+                if bs==0:
+                    row.x_path = last_x_path
+                else:
+                    for i in range(-bs):
+                        last_x_path = path.dirname(last_x_path)
+                    row.x_path = last_x_path
                 df.iloc[k] = row
                 continue
-            if bs<=-1:
-                last_row = df.iloc[k-1]
-                row.x_path = path.dirname(last_row.x_path)
-                df.iloc[k] = row
-                continue
+            
         return df.x_path
     def __parse_indent(self,pk,row):
         pk+=1
