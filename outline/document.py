@@ -3,6 +3,8 @@ from .desc import LetDesc
 import re
 import pandas as pd
 from os import path
+import time
+import numpy as np
 class LetTextDesc(LetDesc):
     def __init__(self,default=None,name=None):
         super().__init__()
@@ -90,7 +92,33 @@ class Document():
     @property
     def df(self):
         return self._x_path_df.copy()
-
-
     
+    def get_row_by_pks(self,pk_list):
+        pass
+    def to_dense(self):
+        #转化为密集阵
+        df = pd.DataFrame(self.df) 
+        shape_df = df.groupby(['indent'],as_index=False).count()
+        columns = [f"c_{k}" for k in shape_df.indent.values] 
+        res_data = []
+        for k,row in df.iterrows():
+            x_path = []
+            row_array = np.ones(shape=(len(columns)),dtype=np.int64) * -1
+            
+            if row.x_path!="/":
+                x_path = row.x_path.split("/")[1:]
+            x_path.append(str(row.pk))
+            for idx,dk in enumerate(x_path) :
+                row_array[idx] = int(dk)
+            res_data.append(row_array)
+        res_array = np.stack(res_data,axis=0)
+        res_df = pd.DataFrame(data=res_array,columns=[ f"{k}_pk" for k in columns])
+        right_df = df.loc[:,['pk','content']]
+        for col in columns:
+            left_k = f"{col}_pk"
+            res_df = pd.merge(res_df,right_df,left_on=left_k,right_on='pk',how='left')
+            res_df[left_k] = res_df['content']
+            res_df = res_df.drop(columns=['content','pk'])
+        rname_map = {f"{col}_pk":col for col in columns}
+        return res_df.rename(rname_map,axis=1)
     
