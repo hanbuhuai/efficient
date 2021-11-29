@@ -15,6 +15,7 @@ class ExcelParser():
         df = Document.read_txt(fpath).to_dense() 
         return cls(df)
     def make_out_put_df(self,df):
+        df = df.fillna(value="<span>")
         for col in df.columns:
             col_obj = getattr(df,col)
             split_cmd = col_obj.str.contains("\|").values
@@ -39,7 +40,26 @@ class ExcelParser():
         resp_columns = [ columns[k] for k in prem]
         df = df[resp_columns]
         self.out_put_df = df
-        
+    def __write_filter(self,df):
+        columns = list(df.columns)
+        __writeable__ = []
+        for k,row in df.iterrows():
+            r_dt = row.to_dict()
+            r_dt_value =  r_dt.values()
+            if "<span>" in r_dt_value:
+                r_dt_set =set([ va  for va in r_dt.values() if pd.notnull(va) and not va=="<span>" ] ) 
+                next_row = df.iloc[k+1]
+                calcu_set =set(r_dt_set) & set(next_row.to_dict().values())
+                if calcu_set == r_dt_set:
+                    __writeable__.append(0)
+                else:
+                    __writeable__.append(1)
+            else:
+                __writeable__.append(1)
+        df['__writeable__'] = __writeable__
+        df = df.loc[df['__writeable__']==1,:].fillna(value="")
+        # print(df)
+        return df.reset_index(drop=True)
     def save(self,fname,columns=None):
         df = self.out_put_df.copy()
         index_columns = list(df.columns)
@@ -47,12 +67,13 @@ class ExcelParser():
             rename_map = dict(zip(index_columns,columns))
             df = df.rename(rename_map,axis=1)
             index_columns = list(df.columns)
-        df['__write__success'] = 1
+        df = self.__write_filter(df)
         df = pd.pivot_table(df,index=index_columns,fill_value="")
         df.to_excel(fname,sheet_name="sheet")
         return fname
 if __name__ == "__main__":
     m  = ExcelParser.read_txt('test.txt')
+    m.transColumns([2,1,0,3,4,5])
     # m.save(opt.xls)
-    m.save("opt.xls",['module','method','role','desc'])
+    m.save("opt.xls",['module','client','role','sp','desc'])
 

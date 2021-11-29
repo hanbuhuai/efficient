@@ -104,7 +104,6 @@ class Document():
         for k,row in df.iterrows():
             x_path = []
             row_array = np.ones(shape=(len(columns)),dtype=np.int64) * -1
-            
             if row.x_path!="/":
                 x_path = row.x_path.split("/")[1:]
             x_path.append(str(row.pk))
@@ -120,5 +119,7 @@ class Document():
             res_df[left_k] = res_df['content']
             res_df = res_df.drop(columns=['content','pk'])
         rname_map = {f"{col}_pk":col for col in columns}
+        
         return res_df.rename(rname_map,axis=1)
+    
     

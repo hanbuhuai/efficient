@@ -1,3 +1,3 @@
 # -*- coding: UTF-8 -*-
 
-from outline import excel_parser_dev
+from outline import excel_parser
