@@ -24,9 +24,10 @@ class ExcelParser():
                 rename_map = {k:f"{col}_{k}" for k in expand_df.columns}
                 df = pd.merge(df,expand_df.rename(rename_map,axis=1),how='left',left_index=True,right_index=True)
                 df = df.drop(columns=[col])
+        
         columns = sorted(df.columns) 
         df = df[columns]
-        df = df.apply(lambda ds: ds.map(lambda x: x if x != None else pd.NaT))
+        df = df.apply(lambda ds: ds.map(lambda x: x if not x is None else pd.NA))
         rename_map = {col_name:f"c_{k}" for k,col_name in enumerate(columns) }
         df = df.rename(rename_map,axis=1)
         return df
